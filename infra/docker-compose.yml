@@ -1,0 +1,20 @@
+services:
+  otelcol:
+    image: otel/opentelemetry-collector:latest
+    command: ["--config=/etc/otelcol/collector.yaml"]
+    volumes:
+      - type: bind
+        source: ./otel-config
+        target: /etc/otelcol
+        read_only: true
+    ports:
+      - "4317:4317"   # keep: app -> collector (OTLP gRPC)
+      - "4318:4318"   # optional: OTLP HTTP
+
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+    ports:
+      - "16686:16686" # Jaeger UI only
+      # (remove the 4317 mapping here)
