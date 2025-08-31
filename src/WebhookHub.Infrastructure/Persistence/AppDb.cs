@@ -3,17 +3,19 @@ using WebhookHub.Domain;
 
 namespace WebhookHub.Infrastructure.Persistence;
 
-public class AppDb(DbContextOptions<AppDb> options) : DbContext(options)
+public class AppDb : DbContext
 {
+    public AppDb(DbContextOptions<AppDb> options) : base(options) { }
+
     public DbSet<Event> Events => Set<Event>();
+
     protected override void OnModelCreating(ModelBuilder b)
     {
         b.Entity<Event>(e =>
         {
-            e.ToTable("events");
+            e.ToTable("events");       // <= matches the INSERT target
             e.HasKey(x => x.Id);
-            e.Property(x => x.Source).HasMaxLength(100).IsRequired();
-            e.Property(x => x.ReceivedAt);
+            e.Property(x => x.Source).HasMaxLength(200);
         });
     }
 }

@@ -9,8 +9,9 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, string? connectionString)
     {
-        var cs = connectionString ?? "Host=localhost;Username=app;Password=app;Database=hub";
-        services.AddDbContext<AppDb>(o => o.UseNpgsql(cs));
+        var connString = connectionString ?? "Host=localhost;Username=app;Password=app;Database=hub";
+        services.AddDbContext<AppDb>(o => o.UseNpgsql(connString));
+
         services.AddScoped<IEventWriter, EventWriter>();
 
         return services;

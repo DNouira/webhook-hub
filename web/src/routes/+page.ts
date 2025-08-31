@@ -1,6 +1,9 @@
+import type { PageLoad } from './$types';
 import { api } from '$lib/api';
 
-export const load = async () => {
-  const health = await api<{ status: string; time: string }>('/healthz');
+type Health = { status: string; time: string };
+
+export const load: PageLoad = async () => {
+  const health = await api<Health>('/api/health');
   return { health };
 };
