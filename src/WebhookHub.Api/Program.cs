@@ -1,11 +1,8 @@
 using System.Diagnostics;
-using Microsoft.AspNetCore.Mvc;
-using OpenTelemetry;
 using OpenTelemetry.Exporter;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using WebhookHub.Application;
-using WebhookHub.Application.Health;
 using WebhookHub.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -19,6 +16,7 @@ builder.Services.AddCors(o => o.AddDefaultPolicy(p => p
     .AllowAnyHeader()
     .AllowAnyMethod()));
 
+builder.Services.AddControllers();
 builder.Services.AddOpenTelemetry()
     .ConfigureResource(r => r
         .AddService(serviceName)
@@ -27,7 +25,7 @@ builder.Services.AddOpenTelemetry()
     {
         t.AddAspNetCoreInstrumentation();
         t.AddHttpClientInstrumentation();
-        t.AddEntityFrameworkCoreInstrumentation(); // <-- EF spans
+        t.AddEntityFrameworkCoreInstrumentation();
 
         var endpoint = builder.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"] ?? "http://localhost:4317";
         var protocol = builder.Configuration["OTEL_EXPORTER_OTLP_PROTOCOL"]?.ToLowerInvariant();
@@ -46,14 +44,9 @@ builder.Services.AddApplication();
 builder.Services.AddInfrastructure(
     builder.Configuration.GetConnectionString("Db") ?? builder.Configuration["ConnectionStrings:Db"]);
 
+
 var app = builder.Build();
 app.UseCors();
-
-app.MapGet("/healthz", async ([FromServices] ActivitySource src, [FromServices] MediatR.IMediator mediator) =>
-{
-    using var act = src.StartActivity("health-check");
-    var dto = await mediator.Send(new CreateHealthEventCommand("healthz"));
-    return Results.Ok(new { status = "ok", time = dto.ReceivedAt });
-});
+app.MapControllers();
 
 await app.RunAsync();
